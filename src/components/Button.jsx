@@ -1,9 +1,13 @@
 import React from "react";
 import styled from "styled-components";
 
-export const Button = ({ icon, text, backgroundColor, border }) => {
+export const Button = ({ onClick, icon, text, backgroundColor, border }) => {
   return (
-    <Container border={border} backgroundColor={backgroundColor}>
+    <Container
+      onClick={onClick}
+      border={border}
+      backgroundColor={backgroundColor}
+    >
       {text}
       {!!icon && (
         <img style={{ width: "23px", height: "23" }} src={icon} alt={"icon"} />

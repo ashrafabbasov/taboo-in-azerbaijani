@@ -1,23 +1,21 @@
 import React from "react";
 import styled from "styled-components";
 
-export const GameCard = () => {
+export const GameCard = ({ card }) => {
   return (
     <Container>
-      <CardHeader>Ketçup</CardHeader>
+      <CardHeader>{card.word}</CardHeader>
       <CardBody>
-        <CardItem>Katof fri</CardItem>
-        <CardItem>Mayonez</CardItem>
-        <CardItem>Souz</CardItem>
-        <CardItem>Pomidor tomatı</CardItem>
-        <CardItem>Acı</CardItem>
+        {card.taboos.map((item, i) => (
+          <CardItem key={i}>{item}</CardItem>
+        ))}
       </CardBody>
     </Container>
   );
 };
 const Container = styled.div`
   width: 300px;
-  margin-top: 20px;
+  margin-top: 10px;
 `;
 const CardHeader = styled.div`
   display: flex;
@@ -35,7 +33,7 @@ const CardHeader = styled.div`
 const CardBody = styled.div`
   display: flex;
   align-items: center;
-  justify-content: space-between;
+
   flex-direction: column;
   background-color: white;
   border-bottom-left-radius: 15px;
@@ -44,5 +42,6 @@ const CardBody = styled.div`
   padding: 40px;
 `;
 const CardItem = styled.div`
-  font-size: 30px;
+  font-size: 28px;
+  margin-bottom: 15px;
 `;

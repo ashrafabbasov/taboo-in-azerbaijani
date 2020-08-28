@@ -4,34 +4,67 @@ import Timer from "react-compound-timer";
 
 import { ICONS } from "./styles";
 import { GameCard, Button } from "./components";
+import { DATA } from "./data/data";
+
+const cards = shuffle(DATA);
 
 function App() {
-  const [gameState, setGameState] = useState(false);
-  console.log(gameState);
-  const toggleGameState = (state) => {
-    return state ? setGameState(false) : setGameState(true);
+  const [gameState, setGameState] = useState("paused"); //paused, ongoing, ended
+  const [point, setPoint] = useState(0);
+  const [numOfWrong, setNumOfWrong] = useState(0);
+  const [iterator, setIterator] = useState(0);
+  const [numOfPasses, setNumOfPasses] = useState(3);
+
+  const endGameCard = {
+    word: "Oyun Bitdi",
+    taboos: [
+      `Doğru Cavab: ${point}`,
+      `Səhv Cavab: ${numOfWrong}`,
+      `Pas sayı: ${3 - numOfPasses}`,
+    ],
+  };
+  // console.log(cards.length);
+
+  const increasePoint = () => {
+    setPoint(point + 1);
+  };
+  const increaseNumOfWrong = () => {
+    setNumOfWrong(numOfWrong + 1);
+  };
+  const nextCard = () => {
+    if (iterator === cards.length - 1) {
+      setIterator(0);
+    } else {
+      setIterator(iterator + +1);
+    }
   };
 
   return (
     <div className="App">
+      <Title>
+        Tabu
+        <span style={{ color: "#ff2e62", fontWeight: 600, fontSize: 60 }}>
+          AZ
+        </span>
+      </Title>
       <div className="header">
         <Timer
-          initialTime={60000}
+          initialTime={60500}
           direction="backward"
           startImmediately={false}
           checkpoints={[
             {
-              time: 0,
-              callback: () => console.log("time's up"),
+              time: 500,
+              callback: () => setGameState("ended"),
             },
           ]}
         >
           {({ start, pause, stop, reset }) => (
             <>
-              {!gameState ? (
+              {gameState === "paused" ? (
                 <button
                   onClick={() => {
-                    toggleGameState(gameState);
+                    setGameState("ongoing");
                     start();
                   }}
                   className="headerButtons"
@@ -45,7 +78,13 @@ function App() {
               ) : (
                 <button
                   onClick={() => {
-                    toggleGameState(gameState);
+                    if (gameState === "ended") {
+                      setNumOfWrong(0);
+                      setPoint(0);
+                      setNumOfPasses(3);
+                      reset();
+                    }
+                    setGameState("paused");
                     pause();
                   }}
                   className="headerButtons"
@@ -57,7 +96,7 @@ function App() {
                   />
                 </button>
               )}
-              <span className="gameInfoText">Xal: 0  Vaxt: </span>
+              <span className="gameInfoText">Xal: {point}  Vaxt: </span>
               <div className="timer">
                 <Timer.Minutes
                   formatValue={(value) => `${value < 10 ? `0${value}` : value}`}
@@ -71,7 +110,10 @@ function App() {
                 onClick={() => {
                   reset();
                   stop();
-                  setGameState(false);
+                  setGameState("paused");
+                  setPoint(0);
+                  setNumOfWrong(0);
+                  setNumOfPasses(3);
                 }}
                 className="headerButtons"
               >
@@ -85,15 +127,43 @@ function App() {
           )}
         </Timer>
       </div>
-      <GameCard />
+      <GameCard card={gameState !== "ended" ? cards[iterator] : endGameCard} />
 
       <Bottom>
         <Checking>
-          <Button icon={ICONS.wrongIcon} backgroundColor={"#C70039"} />
-          <Button icon={ICONS.correctIcon} backgroundColor={"#435E55FF"} />
+          <Button
+            onClick={() => {
+              if (gameState !== "ended") {
+                increaseNumOfWrong();
+                nextCard();
+              }
+            }}
+            icon={ICONS.wrongIcon}
+            backgroundColor={"#C70039"}
+          />
+          <Button
+            onClick={() => {
+              if (gameState !== "ended") {
+                increasePoint();
+                nextCard();
+              }
+            }}
+            icon={ICONS.correctIcon}
+            backgroundColor={"#435E55FF"}
+          />
         </Checking>
         <Skip>
-          <Button text={"PAS"} border={true} backgroundColor={"gray"} />
+          <Button
+            text={`PAS (${numOfPasses})`}
+            border={true}
+            backgroundColor={"gray"}
+            onClick={() => {
+              if (numOfPasses !== 0 && gameState !== "ended") {
+                nextCard();
+                setNumOfPasses(numOfPasses - 1);
+              }
+            }}
+          />
         </Skip>
       </Bottom>
     </div>
@@ -102,10 +172,17 @@ function App() {
 
 export default App;
 
+const Title = styled.h1`
+  font-weight: 600;
+  color: white;
+  margin: 0;
+  font-size: 60px;
+`;
+
 const Bottom = styled.div`
   width: 250px;
 
-  margin-top: 20px;
+  margin-top: 10px;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -125,3 +202,14 @@ const Skip = styled.div`
   align-items: center;
   width: 250px;
 `;
+
+function shuffle(a) {
+  var j, x, i;
+  for (i = a.length - 1; i > 0; i--) {
+    j = Math.floor(Math.random() * (i + 1));
+    x = a[i];
+    a[i] = a[j];
+    a[j] = x;
+  }
+  return a;
+}
