@@ -1,12 +1,13 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import styled from "styled-components";
 import Timer from "react-compound-timer";
 
 import { ICONS } from "./styles";
 import { GameCard, Button } from "./components";
-import { DATA } from "./data/data";
+import { orderOfCards } from "./utils/orderOfCards";
+import { db } from "./utils/fireBase";
 
-const cards = shuffle(DATA);
+const cardIndexes = shuffle(orderOfCards);
 
 function App() {
   const [gameState, setGameState] = useState("paused"); //paused, ongoing, ended
@@ -14,6 +15,21 @@ function App() {
   const [numOfWrong, setNumOfWrong] = useState(0);
   const [iterator, setIterator] = useState(0);
   const [numOfPasses, setNumOfPasses] = useState(3);
+  const [currentCard, setCurrentCard] = useState({
+    taboos: [""],
+    word: "",
+  });
+
+  useEffect(() => {
+    try {
+      const reference = db.ref(`${cardIndexes[iterator]}`);
+      reference.once("value").then((snapshot) => {
+        setCurrentCard(snapshot.val());
+      });
+    } catch (error) {
+      console.log("getCardError", error);
+    }
+  }, [iterator]);
 
   const endGameCard = {
     word: "Oyun Bitdi",
@@ -23,7 +39,6 @@ function App() {
       `Pas sayı: ${3 - numOfPasses}`,
     ],
   };
-  // console.log(cards.length);
 
   const increasePoint = () => {
     setPoint(point + 1);
@@ -32,7 +47,7 @@ function App() {
     setNumOfWrong(numOfWrong + 1);
   };
   const nextCard = () => {
-    if (iterator === cards.length - 1) {
+    if (iterator === cardIndexes.length - 1) {
       setIterator(0);
     } else {
       setIterator(iterator + +1);
@@ -82,6 +97,7 @@ function App() {
                       setNumOfWrong(0);
                       setPoint(0);
                       setNumOfPasses(3);
+
                       reset();
                     }
                     setGameState("paused");
@@ -114,6 +130,7 @@ function App() {
                   setPoint(0);
                   setNumOfWrong(0);
                   setNumOfPasses(3);
+                  nextCard();
                 }}
                 className="headerButtons"
               >
@@ -127,7 +144,7 @@ function App() {
           )}
         </Timer>
       </div>
-      <GameCard card={gameState !== "ended" ? cards[iterator] : endGameCard} />
+      <GameCard card={gameState !== "ended" ? currentCard : endGameCard} />
 
       <Bottom>
         <Checking>
